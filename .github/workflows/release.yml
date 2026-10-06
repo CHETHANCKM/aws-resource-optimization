@@ -97,3 +97,22 @@ jobs:
           files: |
             dist/*
             vscode-extension/*.vsix
+
+      - name: Keep only the three latest releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          old_tags="$(gh release list --limit 1000 --json tagName,createdAt,isDraft \
+            --jq 'map(select(.isDraft == false)) | sort_by(.createdAt) | reverse | .[3:] | .[].tagName')"
+
+          if [[ -z "$old_tags" ]]; then
+            echo "Three or fewer published releases exist; nothing to delete."
+            exit 0
+          fi
+
+          while IFS= read -r tag; do
+            [[ -z "$tag" ]] && continue
+            echo "Deleting old release and tag: $tag"
+            gh release delete "$tag" --cleanup-tag --yes
+          done <<< "$old_tags"
