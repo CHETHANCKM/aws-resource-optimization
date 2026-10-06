@@ -1,12 +1,12 @@
 # AWS Resource Optimization MCP
 
-This project is a minimal, production-ready starter for an AWS Resource Optimization Model Context Protocol (MCP) server in Python.
+This project is a minimal starter for an AWS Resource Optimization Model Context Protocol (MCP) server in Python.
 
 It intentionally keeps the implementation simple and leaves real AWS analysis for future work. The current version is defined in the project root `VERSION` file so releases remain explicit and controlled.
 
 ## Current version
 
-The application version is read from the `VERSION` file at the repository root.
+The application version is read from the repository root `VERSION` file.
 
 Current value:
 
@@ -14,39 +14,75 @@ Current value:
 0.1.0
 ```
 
-## What the MCP server is
+Version format:
+
+- Production: `v0.1.0`
+- Development: `v0.1.0-<short-commit-sha>`
+
+When the app runs in dev mode, the CLI prints the stable version plus the short commit SHA. Production installs print the stable tag only.
+
+## What the MCP server provides
 
 This starter exposes a minimal MCP server built with the official Python MCP SDK. It currently provides:
 
 - a tool named `aws_account_summary`
 - a prompt named `aws_report`
 
-The tool returns a simple test response:
+The tool returns:
 
 ```text
 AWS Resource Optimization MCP is running.
 ```
 
-The prompt returns a basic instruction for generating an AWS resource report.
+The prompt returns a reusable AWS resource report template.
 
-## Local development
+## Install for production
 
-From the project root:
+Install the stable release from the `main` branch:
 
 ```bash
+git clone https://github.com/CHETHANCKM/aws-resource-optimization.git
+cd aws-resource-optimization
+git checkout main
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e .[test]
+python -m pip install -e .
 ```
 
-## Installation
+If you want the package installed directly from GitHub:
 
 ```bash
-pip install .
+pip install "git+https://github.com/CHETHANCKM/aws-resource-optimization.git@main"
 ```
 
-## How to run the MCP server
+## Install for development
+
+Use the `dev` branch for the latest changes and commit-based versioning:
+
+```bash
+git clone https://github.com/CHETHANCKM/aws-resource-optimization.git
+cd aws-resource-optimization
+git checkout dev
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e '.[test]'
+```
+
+To print the dev version format:
+
+```bash
+APP_ENV=dev GIT_COMMIT_SHA=$(git rev-parse --short HEAD) aws-resource-optimization-mcp /version
+```
+
+To print the production version format:
+
+```bash
+APP_ENV=prod aws-resource-optimization-mcp /version
+```
+
+## Run the MCP server
 
 After installation, the project exposes the command:
 
@@ -54,34 +90,7 @@ After installation, the project exposes the command:
 aws-resource-optimization-mcp
 ```
 
-This starts the MCP server using stdio transport, which is the usual setup for MCP clients such as VS Code.
-
-## MCP tool
-
-The tool is:
-
-- `aws_account_summary`
-
-It currently returns a simple confirmation string indicating the server is running.
-
-## MCP prompt
-
-The prompt is:
-
-- `aws_report`
-
-It returns a reusable prompt template describing the content of a basic AWS resource report.
-
-## Version management through VERSION
-
-The version is controlled from a single source of truth:
-
-```text
-VERSION
-0.1.0
-```
-
-The project does not hardcode the version in multiple places. The Python package version is dynamically read from that file during packaging.
+This starts the MCP server using stdio transport, which is the common setup for MCP clients such as VS Code.
 
 ## Release process
 
@@ -92,10 +101,11 @@ The workflow:
 1. reads `VERSION`
 2. validates it as `MAJOR.MINOR.PATCH`
 3. runs tests
-4. builds the package
-5. creates a branch-specific tag
-6. creates a GitHub Release with the release name
-7. attaches the built artifacts from `dist/`
+4. builds the Python package
+5. builds the VSIX extension
+6. creates a branch-specific tag
+7. creates a GitHub Release with the release name
+8. attaches the artifact files from `dist/` and `vscode-extension/*.vsix`
 
 On `main`, the tag is a stable release such as:
 
@@ -103,31 +113,23 @@ On `main`, the tag is a stable release such as:
 v0.1.0
 ```
 
-On `dev`, the tag is a prerelease such as:
+On `dev`, the tag is versioned with the short commit SHA, for example:
 
 ```text
-v0.1.0-dev
+v0.1.0-abc123d
 ```
 
-The runtime version output also includes the environment suffix, for example:
+The runtime version output matches the release format:
 
 ```text
-0.1.0-dev
+v0.1.0-abc123d
 ```
 
-The workflow is intentionally simple and does not auto-bump versions.
-
-## GitHub Actions release behavior
-
-The release job runs on pushes to `main` and `dev`.
-
-If the tag already exists, the workflow fails with a clear message such as:
+Production runs print only the stable version:
 
 ```text
-Release v0.1.0-dev already exists. Update VERSION before pushing.
+v0.1.0
 ```
-
-This prevents duplicate releases and ensures the developer updates `VERSION` before the next release.
 
 ## Example VS Code MCP configuration
 
@@ -143,4 +145,4 @@ Use a configuration similar to this in VS Code:
 }
 ```
 
-This is a starter configuration. It is designed to be extended later with real AWS resource inspection logic.
+This is a starter configuration designed to be extended later with real AWS resource inspection logic.
