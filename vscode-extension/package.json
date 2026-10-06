@@ -1,0 +1,38 @@
+{
+  "name": "aws-resource-optimization-mcp-vsix",
+  "displayName": "AWS Resource Optimization MCP",
+  "description": "Minimal VSIX wrapper for the AWS Resource Optimization MCP server.",
+  "version": "0.1.0",
+  "publisher": "aws-resource-optimization",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CHETHANCKM/aws-resource-optimization"
+  },
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:aws-resource-optimization.showVersion"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aws-resource-optimization.showVersion",
+        "title": "AWS Resource Optimization: Show Version"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/vscode": "^1.94.0",
+    "@vscode/vsce": "^3.6.0",
+    "typescript": "^5.7.3"
+  }
+}
