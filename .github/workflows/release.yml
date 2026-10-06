@@ -98,16 +98,23 @@ jobs:
             dist/*
             vscode-extension/*.vsix
 
-      - name: Keep only the three latest releases
+      - name: Update latest tag
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git tag --force latest "$TAG"
+          git push --force origin refs/tags/latest
+
+      - name: Keep only the two latest releases
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           old_tags="$(gh release list --limit 1000 --json tagName,createdAt,isDraft \
-            --jq 'map(select(.isDraft == false)) | sort_by(.createdAt) | reverse | .[3:] | .[].tagName')"
+            --jq 'map(select(.isDraft == false)) | sort_by(.createdAt) | reverse | .[2:] | .[].tagName')"
 
           if [[ -z "$old_tags" ]]; then
-            echo "Three or fewer published releases exist; nothing to delete."
+            echo "Two or fewer published releases exist; nothing to delete."
             exit 0
           fi
 

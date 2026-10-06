@@ -109,12 +109,13 @@ The workflow:
 3. runs tests
 4. builds the Python package
 5. builds the VSIX extension
-6. creates a branch-specific tag
+6. creates a branch-specific version tag
 7. creates a GitHub Release with the release name
 8. attaches the artifacts from `dist/` and `vscode-extension/*.vsix`
-9. keeps only the three newest published releases total across `main` and `dev`, deleting older releases and their Git tags
+9. moves the `latest` Git tag to the newly published commit
+10. keeps only the two newest published releases total across `main` and `dev`, deleting older releases and their version tags
 
-On `main`, the tag is a stable release such as:
+The `latest` tag is a movable alias for the newest release across both branches. Each release's version tag, such as `v0.1.0` or `v0.1.0-abc123d`, remains version-specific.
 ```text
 v0.1.0
 ```
