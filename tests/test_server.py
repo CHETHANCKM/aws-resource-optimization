@@ -36,4 +36,8 @@ def test_prompt_response():
 
 def test_version_command_output(monkeypatch):
     monkeypatch.setenv("APP_ENV", "dev")
-    assert get_version_with_env() == f"{__version__}-dev"
+    monkeypatch.setenv("GIT_COMMIT_SHA", "abc123def456")
+    assert get_version_with_env() == f"v{__version__}-abc123d"
+
+    monkeypatch.setenv("APP_ENV", "prod")
+    assert get_version_with_env() == f"v{__version__}"

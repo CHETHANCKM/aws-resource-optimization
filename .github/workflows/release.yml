@@ -41,8 +41,9 @@ jobs:
           fi
 
           if [[ "$BRANCH" == "dev" ]]; then
-            TAG="v${BASE_VERSION}-dev"
-            RELEASE_NAME="${BASE_VERSION}-dev"
+            SHORT_SHA="${GITHUB_SHA::7}"
+            TAG="v${BASE_VERSION}-${SHORT_SHA}"
+            RELEASE_NAME="${BASE_VERSION}-${SHORT_SHA}"
           else
             TAG="v${BASE_VERSION}"
             RELEASE_NAME="${BASE_VERSION}"
