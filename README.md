@@ -36,29 +36,20 @@ AWS Resource Optimization MCP is running.
 
 The prompt returns a reusable AWS resource report template.
 
-## Install for production
+## Install for users
 
-Install the stable release from the `main` branch:
+Download the VSIX from the GitHub Release and install it in VS Code:
 
-```bash
-git clone https://github.com/CHETHANCKM/aws-resource-optimization.git
-cd aws-resource-optimization
-git checkout main
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e .
-```
+1. Open the GitHub Releases page for this project.
+2. Download the `.vsix` file for the release.
+3. In VS Code, run `Extensions: Install from VSIX...`.
+4. Select the downloaded file.
 
-If you want the package installed directly from GitHub:
-
-```bash
-pip install "git+https://github.com/CHETHANCKM/aws-resource-optimization.git@main"
-```
+This is the recommended installation flow for users who only need the extension.
 
 ## Install for development
 
-Use the `dev` branch for the latest changes and commit-based versioning:
+Development installation is only for contributors working on the project itself:
 
 ```bash
 git clone https://github.com/CHETHANCKM/aws-resource-optimization.git
