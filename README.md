@@ -111,7 +111,8 @@ The workflow:
 5. builds the VSIX extension
 6. creates a branch-specific tag
 7. creates a GitHub Release with the release name
-8. attaches the artifact files from `dist/` and `vscode-extension/*.vsix`
+8. attaches the artifacts from `dist/` and `vscode-extension/*.vsix`
+9. keeps only the three newest published releases total across `main` and `dev`, deleting older releases and their Git tags
 
 On `main`, the tag is a stable release such as:
 ```text
