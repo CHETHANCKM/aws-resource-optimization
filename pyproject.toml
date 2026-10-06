@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aws-resource-optimization-mcp"
+dynamic = ["version"]
+description = "Minimal MCP starter server for AWS Resource Optimization"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "AWS Resource Optimization Team" }]
+dependencies = [
+    "mcp>=1.0.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+aws-resource-optimization-mcp = "aws_resource_mcp.server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { file = ["VERSION"] }
