@@ -33,24 +33,40 @@ The tool returns:
 ```text
 AWS Resource Optimization MCP is running.
 ```
-
 The prompt returns a reusable AWS resource report template.
 
-## Install for users
+## Install and use as an MCP server
 
-Download the VSIX from the GitHub Release and install it in VS Code:
+The VSIX adds VS Code commands, but it does not contain the Python MCP server. Download both the `.vsix` and `.whl` assets from the same GitHub Release. Users do not need to clone the repository.
 
-1. Open the GitHub Releases page for this project.
-2. Download the `.vsix` file for the release.
-3. In VS Code, run `Extensions: Install from VSIX...`.
-4. Select the downloaded file.
+1. In VS Code, open the Command Palette, run `Extensions: Install from VSIX...`, and select the downloaded VSIX.
+2. Install the Python wheel in a virtual environment. Replace the wheel path with the file you downloaded:
 
-This is the recommended installation flow for users who only need the extension.
+```bash
+python3 -m venv ~/.local/share/aws-resource-optimization/venv
+~/.local/share/aws-resource-optimization/venv/bin/python -m pip install /path/to/downloaded/aws_resource_optimization_mcp-<version>-py3-none-any.whl
+```
 
-## Install for development
+3. Add this server to your VS Code MCP configuration. Replace `your-name` with your macOS account name and adjust the executable path if you used another virtual environment location:
 
-Development installation is only for contributors working on the project itself:
+```json
+{
+  "servers": {
+    "aws-resource-optimization": {
+      "type": "stdio",
+      "command": "/Users/your-name/.local/share/aws-resource-optimization/venv/bin/aws-resource-optimization-mcp",
+      "args": [],
+      "env": {
+        "APP_ENV": "prod"
+      }
+    }
+  }
+}
+```
 
+4. Start the server from VS Code's MCP view. In Chat, select the `aws_account_summary` tool to test it. The current tool only returns a placeholder confirmation; it does not yet inspect AWS resources.
+
+The VS Code command `AWS Resource Optimization: Show Version` is an additional executable check. If VS Code cannot find the binary, set `awsResourceOptimization.binaryPath` to its full path in VS Code Settings.
 ```bash
 git clone https://github.com/CHETHANCKM/aws-resource-optimization.git
 cd aws-resource-optimization
@@ -80,7 +96,6 @@ After installation, the project exposes the command:
 ```bash
 aws-resource-optimization-mcp
 ```
-
 This starts the MCP server using stdio transport, which is the common setup for MCP clients such as VS Code.
 
 ## Release process
@@ -99,7 +114,6 @@ The workflow:
 8. attaches the artifact files from `dist/` and `vscode-extension/*.vsix`
 
 On `main`, the tag is a stable release such as:
-
 ```text
 v0.1.0
 ```
@@ -121,19 +135,6 @@ Production runs print only the stable version:
 ```text
 v0.1.0
 ```
+## MCP tool and prompt
 
-## Example VS Code MCP configuration
-
-Use a configuration similar to this in VS Code:
-
-```json
-{
-  "mcpServers": {
-    "aws-resource-optimization": {
-      "command": "aws-resource-optimization-mcp"
-    }
-  }
-}
-```
-
-This is a starter configuration designed to be extended later with real AWS resource inspection logic.
+Configure the server using the `servers` example in the installation steps above. Once it is started, the MCP client can call the `aws_account_summary` tool or use the `aws_report` prompt. The tool currently returns a placeholder and does not perform AWS account analysis.
