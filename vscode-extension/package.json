@@ -12,7 +12,9 @@
   "engines": {
     "vscode": "^1.94.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [
     "onCommand:aws-resource-optimization.showVersion"
   ],
@@ -22,12 +24,40 @@
       {
         "command": "aws-resource-optimization.showVersion",
         "title": "AWS Resource Optimization: Show Version"
+      },
+      {
+        "command": "aws-resource-optimization.syncCommands",
+        "title": "AWS Resource Optimization: Sync MCP Commands"
+      },
+      {
+        "command": "aws-resource-optimization.awsAccountSummary",
+        "title": "aws_account_summary"
+      },
+      {
+        "command": "aws-resource-optimization.generateReport",
+        "title": "Generate AWS resource report"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "AWS Resource Optimization",
+      "properties": {
+        "awsResourceOptimization.binaryPath": {
+          "type": "string",
+          "default": "aws-resource-optimization-mcp",
+          "description": "Path to the aws-resource-optimization-mcp binary. Use full path if VS Code doesn't inherit shell PATH."
+        },
+        "awsResourceOptimization.commandsFile": {
+          "type": "string",
+          "default": "vscode-extension/commands.json",
+          "description": "Workspace-relative or extension-relative JSON file that lists MCP commands to sync into package.json."
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "package": "vsce package"
+    "package": "vsce package",
+    "sync-commands": "node ./scripts/sync-commands.js"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

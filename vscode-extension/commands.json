@@ -1,0 +1,12 @@
+[
+  {
+    "command": "aws-resource-optimization.awsAccountSummary",
+    "title": "aws_account_summary",
+    "args": []
+  },
+  {
+    "command": "aws-resource-optimization.generateReport",
+    "title": "Generate AWS resource report",
+    "args": []
+  }
+]
