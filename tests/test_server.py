@@ -79,12 +79,11 @@ def test_application_info_includes_installed_distribution_metadata(monkeypatch, 
             "Version": "0.1.0+dev.abc123d",
             "Summary": "Minimal MCP starter server for AWS Resource Optimization",
             "Project-URL": ["Homepage, https://github.com/CHETHANCKM/aws-resource-optimization"],
-            "Author": "Chethan",
-            "Author-email": "cchethans14@gmail.com",
+            "Author-email": "Chethan <cchethans14@gmail.com>",
             "License": "MIT",
         })
         version = "0.1.0+dev.abc123d"
-        requires = ["mcp<2.0.0,>=1.0.0"]
+        requires = ["mcp<2.0.0,>=1.0.0", "pytest>=8.0.0; extra == 'test'"]
 
         def locate_file(self, path):
             assert path == ""
@@ -105,6 +104,7 @@ def test_application_info_includes_installed_distribution_metadata(monkeypatch, 
     assert "License: MIT" in info
     assert f"Location: {tmp_path / 'site-packages'}" in info
     assert "Requires: mcp" in info
+    assert "pytest" not in next(line for line in info.splitlines() if line.startswith("Requires:"))
     assert "Required-by: " in info
 
 

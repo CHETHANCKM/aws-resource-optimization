@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+from email.utils import parseaddr
 from importlib.metadata import distribution, distributions
 
 from mcp.server.fastmcp import FastMCP
@@ -54,6 +55,12 @@ def get_version_with_env() -> str:
 def get_application_info() -> str:
     package = distribution("aws-resource-optimization-mcp")
     metadata = package.metadata
+    author = metadata.get("Author", "")
+    author_email, parsed_email = parseaddr(metadata.get("Author-email", ""))
+    if author_email and not author:
+        author = author_email
+    if parsed_email:
+        author_email = parsed_email
     home_page = metadata.get("Home-page", "")
     if not home_page:
         for project_url in metadata.get_all("Project-URL", []):
@@ -78,7 +85,11 @@ def get_application_info() -> str:
             for requirement in (installed.requires or ())
         )
     })
-    requirements = sorted({dependency_name(requirement) for requirement in (package.requires or ())})
+    requirements = sorted({
+        dependency_name(requirement)
+        for requirement in (package.requires or ())
+        if not re.search(r"\bextra\s*==\s*['\"]", requirement.partition(";")[2])
+    })
 
     fields = [
         f"Python {sys.version.split()[0]}",
@@ -86,8 +97,8 @@ def get_application_info() -> str:
         f"Version: {package.version}",
         f"Summary: {metadata.get('Summary', '')}",
         f"Home-page: {home_page}",
-        f"Author: {metadata.get('Author', '')}",
-        f"Author-email: {metadata.get('Author-email', '')}",
+        f"Author: {author}",
+        f"Author-email: {author_email}",
         f"License: {metadata.get('License') or metadata.get('License-Expression', '')}",
         f"Location: {package.locate_file('')}",
         f"Requires: {', '.join(requirements)}",
