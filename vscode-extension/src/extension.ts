@@ -4,6 +4,32 @@ import * as vscode from 'vscode';
 const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsro';
 
 export function activate(context: vscode.ExtensionContext) {
+  const configureAwsSso = async () => {
+    const profile = await vscode.window.showInputBox({
+      prompt: 'AWS CLI profile to configure for IAM Identity Center (SSO)',
+      value: process.env.AWS_PROFILE || 'default',
+      validateInput: value => /^[A-Za-z0-9._-]+$/.test(value.trim())
+        ? undefined
+        : 'Use letters, numbers, dots, underscores, or hyphens in the profile name.',
+    });
+    if (profile === undefined) {
+      return false;
+    }
+
+    const selectedProfile = profile.trim();
+    const terminal = vscode.window.createTerminal({ name: `AWS SSO: ${selectedProfile}` });
+    terminal.show();
+    terminal.sendText(
+      `aws configure sso --profile ${selectedProfile} && aws sso login --profile ${selectedProfile}`,
+    );
+    return selectedProfile;
+  };
+
+  const configureAwsSsoCommand = vscode.commands.registerCommand(
+    'aws-resource-optimization.configureAwsSso',
+    configureAwsSso,
+  );
+
   const showVersion = vscode.commands.registerCommand('aws-resource-optimization.showVersion', () => {
     const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
     const result = cp.spawnSync(bin, ['/version'], {
@@ -104,6 +130,20 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const awsro = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
+    if (request.command === 'login') {
+      const profile = await configureAwsSso();
+      if (profile) {
+        stream.markdown(
+          `AWS SSO setup for profile \`${profile}\` is running in the **AWS SSO: ${profile}** terminal. ` +
+          `Complete the prompts there. Then use the MCP \`aws_account_summary\` tool with profile \`${profile}\` ` +
+          `to verify the connection.`,
+        );
+      } else {
+        stream.markdown('AWS SSO setup was cancelled.');
+      }
+      return;
+    }
+
     if (request.command === 'version' || request.command === 'about') {
       const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
       const result = cp.spawnSync(bin, [request.command === 'about' ? '--about' : '/version'], {
@@ -130,12 +170,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const prompt = request.command === 'help'
-      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
+      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about, /login, /account-summary, /report, and /help. Explain that /login starts AWS IAM Identity Center (SSO) setup in a VS Code terminal, and the MCP aws_account_summary tool verifies a configured profile.'
       : request.command === 'account-summary'
         ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
         : request.command === 'report'
           ? `Write an AWS resource optimization report using only the information included in the user's message. Separate observed facts from recommendations, and state clearly when the provided data is insufficient. Do not claim to have queried AWS.\n\n${request.prompt}`
-          : `You are the AWS Resource Optimization chat assistant. Help users analyze AWS resource and cost information they provide. You do not have direct access to AWS accounts; never claim to have queried AWS. State assumptions and distinguish evidence from recommendations.\n\n${request.prompt}`;
+          : `You are the AWS Resource Optimization chat assistant. Help users analyze AWS resource and cost information they provide. You cannot directly invoke MCP tools from this chat participant; never claim to have queried AWS unless the user provides an aws_account_summary tool result. State assumptions and distinguish evidence from recommendations.\n\n${request.prompt}`;
 
     try {
       const response = await request.model.sendRequest(
@@ -151,7 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(showVersion, syncCommands, awsro);
+  context.subscriptions.push(configureAwsSsoCommand, showVersion, syncCommands, awsro);
 }
 
 export function deactivate() {}

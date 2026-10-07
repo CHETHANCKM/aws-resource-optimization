@@ -17,6 +17,7 @@
   ],
   "activationEvents": [
     "onCommand:aws-resource-optimization.showVersion",
+    "onCommand:aws-resource-optimization.configureAwsSso",
     "onChatParticipant:aws-resource-optimization-mcp-vsix.awsro"
   ],
   "main": "./out/extension.js",
@@ -25,6 +26,10 @@
       {
         "command": "aws-resource-optimization.showVersion",
         "title": "AWS Resource Optimization: Show Version"
+      },
+      {
+        "command": "aws-resource-optimization.configureAwsSso",
+        "title": "AWS Resource Optimization: Configure AWS SSO"
       },
       {
         "command": "aws-resource-optimization.syncCommands",
@@ -56,8 +61,12 @@
             "description": "Show Python, package, and installation details."
           },
           {
+            "name": "login",
+            "description": "Configure and sign in to an AWS IAM Identity Center (SSO) profile."
+          },
+          {
             "name": "account-summary",
-            "description": "Summarize AWS account data included in your prompt."
+            "description": "Summarize account data provided in chat; use the MCP tool separately to query AWS identity."
           },
           {
             "name": "report",

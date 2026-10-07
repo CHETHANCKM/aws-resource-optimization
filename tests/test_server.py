@@ -40,8 +40,46 @@ def test_prompt_exists():
     assert "aws_report" in {prompt.name for prompt in prompt_names}
 
 
-def test_tool_response():
-    assert aws_account_summary() == "AWS Resource Optimization MCP is running."
+def test_account_summary_uses_default_aws_credentials(monkeypatch):
+    class FakeStsClient:
+        def get_caller_identity(self):
+            return {"Account": "123456789012", "Arn": "arn:aws:iam::123456789012:user/test", "UserId": "test"}
+
+    class FakeSession:
+        def client(self, service):
+            assert service == "sts"
+            return FakeStsClient()
+
+    def fake_session(**kwargs):
+        assert kwargs == {}
+        return FakeSession()
+
+    monkeypatch.setattr(server.boto3, "Session", fake_session)
+
+    assert aws_account_summary() == (
+        "Connected to AWS account 123456789012.\n"
+        "ARN: arn:aws:iam::123456789012:user/test\n"
+        "User ID: test"
+    )
+
+
+def test_account_summary_uses_requested_aws_profile(monkeypatch):
+    class FakeStsClient:
+        def get_caller_identity(self):
+            return {"Account": "123456789012", "Arn": "arn:aws:iam::123456789012:role/test", "UserId": "test"}
+
+    class FakeSession:
+        def client(self, service):
+            assert service == "sts"
+            return FakeStsClient()
+
+    def fake_session(**kwargs):
+        assert kwargs == {"profile_name": "company-sso"}
+        return FakeSession()
+
+    monkeypatch.setattr(server.boto3, "Session", fake_session)
+
+    assert "Connected to AWS account 123456789012." in aws_account_summary("company-sso")
 
 
 def test_prompt_response():

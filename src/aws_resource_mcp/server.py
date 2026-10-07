@@ -7,6 +7,7 @@ import sys
 from email.utils import parseaddr
 from importlib.metadata import distribution, distributions
 
+import boto3
 from mcp.server.fastmcp import FastMCP
 
 from aws_resource_mcp import __version__
@@ -108,9 +109,19 @@ def get_application_info() -> str:
 
 
 @mcp.tool()
-def aws_account_summary() -> str:
-    """Return a simple confirmation that the MCP server is running."""
-    return "AWS Resource Optimization MCP is running."
+def aws_account_summary(profile: str | None = None) -> str:
+    """Verify AWS credentials and return the connected account identity.
+
+    Pass a named AWS CLI profile to use its credentials; otherwise the default
+    boto3 credential chain is used.
+    """
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    identity = session.client("sts").get_caller_identity()
+    return (
+        f"Connected to AWS account {identity['Account']}.\n"
+        f"ARN: {identity['Arn']}\n"
+        f"User ID: {identity['UserId']}"
+    )
 
 
 @mcp.prompt()

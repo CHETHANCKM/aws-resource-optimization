@@ -29,11 +29,8 @@ This starter exposes a minimal MCP server built with the official Python MCP SDK
 - a tool named `aws_account_summary`
 - a prompt named `aws_report`
 
-The tool returns:
+The tool `aws_account_summary` verifies your AWS credentials by calling AWS STS and returns the connected account ID, ARN, and user ID. Pass the name of an AWS CLI profile to use an IAM Identity Center (SSO) profile; without one, it uses the standard boto3 credential chain.
 
-```text
-AWS Resource Optimization MCP is running.
-```
 The VSIX is distributed as a GitHub Release asset and is not published to the Visual Studio Marketplace. Download the `.vsix` and Python `.whl` assets from the same release. Cloning the repository is not required.
 
 ### Install the VS Code extension
@@ -41,6 +38,8 @@ The VSIX is distributed as a GitHub Release asset and is not published to the Vi
 1. Download the `.vsix` file from the GitHub Release.
 2. In VS Code, open the Command Palette, run `Extensions: Install from VSIX...`, and select the downloaded file.
 3. To update later, download the newer `.vsix` from its GitHub Release and install it the same way. VS Code will not auto-update this manually distributed extension.
+
+When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker for the repository custom agent, or mention `@awsro` for the extension chat participant and its `/version`, `/about`, `/login`, `/account-summary`, `/report`, and `/help` commands. The agent profile is workspace-scoped; `@awsro` is provided by the installed extension. Run `@awsro /login` or **AWS Resource Optimization: Configure AWS SSO** from the Command Palette to configure and sign in to an AWS CLI profile. Complete the prompts in the opened terminal. Then call the MCP `aws_account_summary` tool and provide the configured profile name to verify the AWS connection.
 
 ### Install the MCP server
 
@@ -72,7 +71,7 @@ Add this server to your VS Code MCP configuration. Replace `your-name` with your
 }
 ```
 
-Start the server from VS Code's MCP view. In Chat, select the `aws_account_summary` tool to test it. The current tool only returns a placeholder confirmation; it does not yet inspect AWS resources.
+Start the server from VS Code's MCP view. Call `aws_account_summary` to verify the AWS account. For a named profile, pass its name as the `profile` argument. The tool checks identity only; it does not yet inspect resources.
 
 The VS Code command `AWS Resource Optimization: Show Version` is an additional executable check. If VS Code cannot find the binary, set `awsResourceOptimization.binaryPath` to its full path in VS Code Settings.
 ```bash
@@ -144,9 +143,16 @@ Production runs print only the stable version:
 ```text
 v0.1.0
 ```
-## MCP tool and prompt
+## Configure AWS SSO
 
-Configure the server using the `servers` example in the installation steps above. Once it is started, the MCP client can call the `aws_account_summary` tool or use the `aws_report` prompt. The tool currently returns a placeholder and does not perform AWS account analysis.
+Install AWS CLI v2 first. The VS Code extension's **AWS Resource Optimization: Configure AWS SSO** command and `@awsro /login` ask for an AWS CLI profile name, then run these AWS CLI steps in an integrated terminal:
+
+```bash
+aws configure sso --profile my-profile
+aws sso login --profile my-profile
+```
+
+The AWS CLI opens the browser for the organization's IAM Identity Center login. The credentials are managed by the AWS CLI and boto3; the extension does not collect or store AWS credentials. After login, call `aws_account_summary` with `{"profile": "my-profile"}` to verify the connected account. The MCP server must be installed with the `boto3` dependency (included automatically when installing the wheel).
 
 ## Contributors
 
