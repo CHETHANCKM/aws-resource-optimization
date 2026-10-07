@@ -44,14 +44,17 @@ jobs:
             SHORT_SHA="${GITHUB_SHA::7}"
             TAG="v${BASE_VERSION}-${SHORT_SHA}"
             RELEASE_NAME="${BASE_VERSION}-${SHORT_SHA}"
+            EXTENSION_VERSION="${BASE_VERSION}-${SHORT_SHA}"
           else
             TAG="v${BASE_VERSION}"
             RELEASE_NAME="${BASE_VERSION}"
+            EXTENSION_VERSION="${BASE_VERSION}"
           fi
 
           echo "base_version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "extension_version=${EXTENSION_VERSION}" >> "$GITHUB_OUTPUT"
 
           if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
             echo "Release ${TAG} already exists. Update VERSION before pushing."
@@ -72,11 +75,32 @@ jobs:
           python -m build
 
       - name: Build VSIX
+        env:
+          EXTENSION_VERSION: ${{ steps.version.outputs.extension_version }}
         run: |
           cd vscode-extension
           npm ci
+          npm version "$EXTENSION_VERSION" --no-git-tag-version --allow-same-version
+          npm pkg set "description=AWS Resource Optimization MCP extension (v${EXTENSION_VERSION})."
+          perl -0pi -e "s/^Current extension version: .*/Current extension version: v${EXTENSION_VERSION}/m" README.md
           npm run compile
           npx @vscode/vsce package
+
+      - name: Publish extension to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [[ -z "$VSCE_PAT" ]]; then
+            echo "Configure the VSCE_PAT repository secret with a Visual Studio Marketplace publishing token."
+            exit 1
+          fi
+
+          cd vscode-extension
+          if [[ "${GITHUB_REF_NAME}" == "dev" ]]; then
+            npx @vscode/vsce publish --pre-release
+          else
+            npx @vscode/vsce publish
+          fi
 
       - name: Create tag
         env:
