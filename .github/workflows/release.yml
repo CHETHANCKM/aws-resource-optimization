@@ -90,9 +90,19 @@ jobs:
           cat > dist/INSTALL.txt <<EOF
           AWS Resource Optimization MCP Python install
 
-          Copy and run this command:
+          macOS (Intel or Apple Silicon; Python 3.10 or newer)
 
-          python -m pip install "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/aws_resource_optimization_mcp-${WHEEL_URL_VERSION}-py3-none-any.whl"
+          If needed, install Python 3.10 or newer from https://www.python.org/downloads/macos/
+          Check that Python 3 is installed:
+          python3 --version
+
+          Create and use an isolated virtual environment:
+          python3 -m venv ~/.local/share/aws-resource-optimization/venv
+          ~/.local/share/aws-resource-optimization/venv/bin/python -m pip install --upgrade pip
+          ~/.local/share/aws-resource-optimization/venv/bin/python -m pip install "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/aws_resource_optimization_mcp-${WHEEL_URL_VERSION}-py3-none-any.whl"
+
+          Use this executable as the MCP server command in VS Code:
+          ~/.local/share/aws-resource-optimization/venv/bin/aws-resource-optimization-mcp
 
           Wheel package version: ${PACKAGE_VERSION}
           EOF
