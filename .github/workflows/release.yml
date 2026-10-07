@@ -80,6 +80,7 @@ jobs:
         run: |
           cd vscode-extension
           npm ci
+          rm -f ./*.vsix
           npm version "$EXTENSION_VERSION" --no-git-tag-version --allow-same-version
           npm pkg set "description=AWS Resource Optimization MCP extension (v${EXTENSION_VERSION})."
           perl -0pi -e "s/^Current extension version: .*/Current extension version: v${EXTENSION_VERSION}/m" README.md
