@@ -1,6 +1,8 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
 
+const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsopt';
+
 export function activate(context: vscode.ExtensionContext) {
   const showVersion = vscode.commands.registerCommand('aws-resource-optimization.showVersion', () => {
     const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
@@ -101,7 +103,53 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(showVersion, syncCommands);
+  const awsopt = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
+    if (request.command === 'version') {
+      const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
+      const result = cp.spawnSync(bin, ['/version'], {
+        env: {
+          ...process.env,
+          APP_ENV: process.env.APP_ENV || 'dev',
+        },
+        encoding: 'utf-8',
+      });
+
+      if (result.error) {
+        stream.markdown(`Could not run \`${bin}\`: ${String(result.error)}`);
+        return;
+      }
+      if (result.status !== 0) {
+        stream.markdown(`The version command exited with status ${result.status}: ${(result.stderr || '').trim()}`);
+        return;
+      }
+
+      stream.markdown(`AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
+      return;
+    }
+
+    const prompt = request.command === 'help'
+      ? 'Explain that this chat participant is @awsopt. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
+      : request.command === 'account-summary'
+        ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
+        : request.command === 'report'
+          ? `Write an AWS resource optimization report using only the information included in the user's message. Separate observed facts from recommendations, and state clearly when the provided data is insufficient. Do not claim to have queried AWS.\n\n${request.prompt}`
+          : `You are the AWS Resource Optimization chat assistant. Help users analyze AWS resource and cost information they provide. You do not have direct access to AWS accounts; never claim to have queried AWS. State assumptions and distinguish evidence from recommendations.\n\n${request.prompt}`;
+
+    try {
+      const response = await request.model.sendRequest(
+        [vscode.LanguageModelChatMessage.User(prompt)],
+        {},
+        token,
+      );
+      for await (const part of response.text) {
+        stream.markdown(part);
+      }
+    } catch (error) {
+      stream.markdown(`Unable to get a response from the selected chat model: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  });
+
+  context.subscriptions.push(showVersion, syncCommands, awsopt);
 }
 
 export function deactivate() {}

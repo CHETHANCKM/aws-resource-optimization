@@ -1,5 +1,6 @@
 import asyncio
 
+import aws_resource_mcp
 from aws_resource_mcp import __version__, get_version, read_version
 from aws_resource_mcp.server import aws_account_summary, aws_report, get_version_with_env, mcp
 
@@ -13,6 +14,19 @@ def test_version_can_be_read():
     assert get_version() == __version__
     assert isinstance(__version__, str)
     assert __version__
+
+
+def test_version_uses_installed_metadata_when_version_file_is_missing(tmp_path, monkeypatch):
+    module_path = tmp_path / "src" / "aws_resource_mcp" / "__init__.py"
+    monkeypatch.setattr(aws_resource_mcp, "__file__", str(module_path))
+
+    def installed_version(distribution):
+        assert distribution == "aws-resource-optimization-mcp"
+        return "0.1.0"
+
+    monkeypatch.setattr(aws_resource_mcp, "version", installed_version)
+
+    assert read_version() == "0.1.0"
 
 
 def test_tool_exists():

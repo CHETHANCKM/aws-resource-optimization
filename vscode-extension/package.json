@@ -16,7 +16,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:aws-resource-optimization.showVersion"
+    "onCommand:aws-resource-optimization.showVersion",
+    "onChatParticipant:aws-resource-optimization-mcp-vsix.awsopt"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -36,6 +37,33 @@
       {
         "command": "aws-resource-optimization.generateReport",
         "title": "Generate AWS resource report"
+      }
+    ],
+    "chatParticipants": [
+      {
+        "id": "aws-resource-optimization-mcp-vsix.awsopt",
+        "name": "awsopt",
+        "fullName": "AWS Resource Optimization",
+        "description": "Analyze AWS resource and cost data you provide.",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "version",
+            "description": "Show the installed MCP server version."
+          },
+          {
+            "name": "account-summary",
+            "description": "Summarize AWS account data included in your prompt."
+          },
+          {
+            "name": "report",
+            "description": "Generate an AWS resource optimization report."
+          },
+          {
+            "name": "help",
+            "description": "Explain this chat participant's commands and capabilities."
+          }
+        ]
       }
     ],
     "configuration": {

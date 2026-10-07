@@ -95,6 +95,8 @@ To print the production version format:
 APP_ENV=prod aws-resource-optimization-mcp /version
 ```
 
+The runtime version uses the repository's `VERSION` file when available and falls back to the installed package metadata, so wheels report their packaged version.
+
 ## Run the MCP server
 
 After installation, the project exposes the command:
