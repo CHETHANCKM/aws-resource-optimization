@@ -109,6 +109,8 @@ This starts the MCP server using stdio transport, which is the common setup for 
 
 The project uses GitHub Actions to validate and publish releases on pushes to either `main` or `dev`. It packages the VSIX and attaches it to the GitHub Release; it does not publish to the Visual Studio Marketplace and requires no Marketplace publishing token.
 
+For instructions on publishing changes and installing updated release artifacts, see [How to Update](./HOW_TO_UPDATE.md).
+
 The workflow:
 
 1. reads `VERSION`
@@ -154,4 +156,4 @@ The AWS CLI opens the browser for the organization's IAM Identity Center login. 
 
 ## Contributors
 
-Contributions are welcome. Please open an issue to discuss a change or submit a pull request.
+- Chethan Sundar
