@@ -8,10 +8,14 @@ dynamic = ["version"]
 description = "Minimal MCP starter server for AWS Resource Optimization"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "AWS Resource Optimization Team" }]
+authors = [{ name = "Chethan", email = "cchethans14@gmail.com" }]
+license = "MIT"
 dependencies = [
     "mcp>=1.0.0,<2.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/CHETHANCKM/aws-resource-optimization"
 
 [project.optional-dependencies]
 test = [

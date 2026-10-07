@@ -132,9 +132,9 @@ function activate(context) {
         }
     });
     const awsro = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
-        if (request.command === 'version') {
+        if (request.command === 'version' || request.command === 'about') {
             const bin = vscode.workspace.getConfiguration().get('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
-            const result = cp.spawnSync(bin, ['/version'], {
+            const result = cp.spawnSync(bin, [request.command === 'about' ? '--about' : '/version'], {
                 env: {
                     ...process.env,
                     APP_ENV: process.env.APP_ENV || 'dev',
@@ -149,11 +149,13 @@ function activate(context) {
                 stream.markdown(`The version command exited with status ${result.status}: ${(result.stderr || '').trim()}`);
                 return;
             }
-            stream.markdown(`AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
+            stream.markdown(request.command === 'about'
+                ? `### About this Application\n\n\`\`\`text\n${(result.stdout || '').trim() || 'No application details returned.'}\n\`\`\``
+                : `AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
             return;
         }
         const prompt = request.command === 'help'
-            ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
+            ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
             : request.command === 'account-summary'
                 ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
                 : request.command === 'report'

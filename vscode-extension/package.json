@@ -10,7 +10,7 @@
     "url": "https://github.com/CHETHANCKM/aws-resource-optimization"
   },
   "engines": {
-    "vscode": "^1.94.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -52,6 +52,10 @@
             "description": "Show the installed MCP server version."
           },
           {
+            "name": "about",
+            "description": "Show Python, package, and installation details."
+          },
+          {
             "name": "account-summary",
             "description": "Summarize AWS account data included in your prompt."
           },
@@ -89,7 +93,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/vscode": "^1.94.0",
+    "@types/vscode": "^1.100.0",
     "@vscode/vsce": "^3.6.0",
     "typescript": "^5.7.3"
   }

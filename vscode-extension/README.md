@@ -10,7 +10,7 @@ The Python MCP server is a separate component and must be installed from the whe
 
 Each GitHub Release includes an `INSTALL.txt` asset with macOS `python3` and virtual-environment setup instructions, the exact pip install command for that release, and the executable path to use when configuring the MCP server. The wheel keeps its standard versioned filename so pip can install it directly.
 
-When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker to use the repository's custom agent profile. You can also mention `@awsro` to use the extension's chat participant, which provides `/version`, `/account-summary`, `/report`, and `/help` slash commands. Slash-command suggestions are available when `@awsro` is selected. The account summary and report analyze data you include in chat; they do not connect to or query your AWS account. A compatible selected chat model is required for model-generated responses.
+When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker to use the repository's custom agent profile. You can also mention `@awsro` to use the extension's chat participant, which provides `/version`, `/about`, `/account-summary`, `/report`, and `/help` slash commands. `/about` shows the installed Python version, package metadata, and installation location. Slash-command suggestions are available when `@awsro` is selected. The account summary and report analyze data you include in chat; they do not connect to or query your AWS account. A compatible selected chat model is required for model-generated responses.
 
 ## Contributors
 

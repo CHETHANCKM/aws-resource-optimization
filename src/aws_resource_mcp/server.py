@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
+from importlib.metadata import distribution, distributions
 
 from mcp.server.fastmcp import FastMCP
 
@@ -49,6 +51,51 @@ def get_version_with_env() -> str:
     return version
 
 
+def get_application_info() -> str:
+    package = distribution("aws-resource-optimization-mcp")
+    metadata = package.metadata
+    home_page = metadata.get("Home-page", "")
+    if not home_page:
+        for project_url in metadata.get_all("Project-URL", []):
+            label, separator, url = project_url.partition(",")
+            if separator and label.strip().lower() == "homepage":
+                home_page = url.strip()
+                break
+
+    def dependency_name(requirement: str) -> str:
+        match = re.match(r"\s*([A-Za-z0-9][A-Za-z0-9._-]*)", requirement)
+        return match.group(1) if match else requirement
+
+    package_name = metadata["Name"]
+    normalized_package_name = re.sub(r"[-_.]+", "-", package_name).lower()
+    required_by = sorted({
+        installed.metadata["Name"]
+        for installed in distributions()
+        if installed.metadata.get("Name")
+        and re.sub(r"[-_.]+", "-", installed.metadata["Name"]).lower() != normalized_package_name
+        and any(
+            re.sub(r"[-_.]+", "-", dependency_name(requirement)).lower() == normalized_package_name
+            for requirement in (installed.requires or ())
+        )
+    })
+    requirements = sorted({dependency_name(requirement) for requirement in (package.requires or ())})
+
+    fields = [
+        f"Python {sys.version.split()[0]}",
+        f"Name: {package_name}",
+        f"Version: {package.version}",
+        f"Summary: {metadata.get('Summary', '')}",
+        f"Home-page: {home_page}",
+        f"Author: {metadata.get('Author', '')}",
+        f"Author-email: {metadata.get('Author-email', '')}",
+        f"License: {metadata.get('License') or metadata.get('License-Expression', '')}",
+        f"Location: {package.locate_file('')}",
+        f"Requires: {', '.join(requirements)}",
+        f"Required-by: {', '.join(required_by)}",
+    ]
+    return "\n".join(fields)
+
+
 @mcp.tool()
 def aws_account_summary() -> str:
     """Return a simple confirmation that the MCP server is running."""
@@ -69,6 +116,9 @@ def main(argv: list[str] | None = None) -> None:
     args = sys.argv[1:] if argv is None else argv
     if args and args[0] in {"/version", "--version", "-v"}:
         print(get_version_with_env())
+        return
+    if args and args[0] in {"/about", "--about"}:
+        print(get_application_info())
         return
     mcp.run(transport="stdio")
 
