@@ -17,6 +17,8 @@
   ],
   "activationEvents": [
     "onCommand:aws-resource-optimization.showVersion",
+    "onCommand:aws-resource-optimization.loginToAws",
+    "onCommand:aws-resource-optimization.logoutFromAws",
     "onCommand:aws-resource-optimization.configureAwsSso",
     "onChatParticipant:aws-resource-optimization-mcp-vsix.awsro"
   ],
@@ -26,6 +28,14 @@
       {
         "command": "aws-resource-optimization.showVersion",
         "title": "AWS Resource Optimization: Show Version"
+      },
+      {
+        "command": "aws-resource-optimization.loginToAws",
+        "title": "AWS Resource Optimization: Login to AWS"
+      },
+      {
+        "command": "aws-resource-optimization.logoutFromAws",
+        "title": "AWS Resource Optimization: Logout from AWS"
       },
       {
         "command": "aws-resource-optimization.configureAwsSso",
@@ -66,7 +76,15 @@
           },
           {
             "name": "login",
+            "description": "Import aws-credentials.csv and verify AWS identity."
+          },
+          {
+            "name": "login-sso",
             "description": "Configure and sign in to an AWS IAM Identity Center (SSO) profile."
+          },
+          {
+            "name": "logout",
+            "description": "Clear all SSO sessions and delete the shared AWS credentials file after confirmation."
           },
           {
             "name": "account-summary",

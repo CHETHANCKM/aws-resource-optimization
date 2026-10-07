@@ -37,7 +37,7 @@ The VSIX is distributed as a GitHub Release asset and is not published to the Vi
 2. In VS Code, open the Command Palette, run `Extensions: Install from VSIX...`, and select the downloaded file.
 3. To update later, download the newer `.vsix` from its GitHub Release and install it the same way. VS Code will not auto-update this manually distributed extension.
 
-When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker for the repository custom agent, or mention `@awsro` for the extension chat participant and its `/version`, `/about`, `/about-app`, `/login`, `/account-summary`, `/report`, and `/help` commands. `/about` shows concise application information; `/about-app` shows detailed installed package metadata. The agent profile is workspace-scoped; `@awsro` is provided by the installed extension. Run `@awsro /login` or **AWS Resource Optimization: Configure AWS SSO** from the Command Palette to configure and sign in to an AWS CLI profile. Complete the prompts in the opened terminal. Then call the MCP `aws_account_summary` tool and provide the configured profile name to verify the AWS connection.
+When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker for the repository custom agent, or mention `@awsro` for the extension chat participant and its `/version`, `/about`, `/about-app`, `/login`, `/login-sso`, `/logout`, `/account-summary`, `/report`, and `/help` commands. `/about` shows concise application information; `/about-app` shows detailed installed package metadata. The agent profile is workspace-scoped; `@awsro` is provided by the installed extension. Run `@awsro /login` or **AWS Resource Optimization: Login to AWS** to import `aws-credentials.csv` and verify the account. Run `@awsro /login-sso` or **AWS Resource Optimization: Configure AWS SSO** to use IAM Identity Center instead. Run **AWS Resource Optimization: Logout from AWS** or `@awsro /logout` to clear all cached SSO sessions and delete the shared AWS credentials file after confirming.
 
 ### Install the MCP server
 
@@ -143,16 +143,13 @@ Production runs print only the stable version:
 ```text
 v0.1.0
 ```
-## Configure AWS SSO
+## Log in with an AWS credentials CSV
 
-Install AWS CLI v2 first. The VS Code extension's **AWS Resource Optimization: Configure AWS SSO** command and `@awsro /login` ask for an AWS CLI profile name, then run these AWS CLI steps in an integrated terminal:
+Install AWS CLI v2 first. Place the IAM access-key CSV downloaded from AWS in the root of the project folder opened in VS Code, named exactly `aws-credentials.csv`. The login command rejects files from other directories or with other names. Run **AWS Resource Optimization: Login to AWS** from the Command Palette or use `@awsro /login`. Select the root-level file and confirm the import. The extension asks the AWS CLI to import the CSV, lets you choose a profile, and verifies the identity with AWS STS. The extension does not read or print the secret access key. AWS CLI imports profiles using the IAM user name from the downloaded CSV; credentials are saved in the standard AWS credentials file.
 
-```bash
-aws configure sso --profile my-profile
-aws sso login --profile my-profile
-```
+After login, call `aws_account_summary` with the selected profile, for example `{"profile": "my-profile"}`, to check the connection again.
 
-The AWS CLI opens the browser for the organization's IAM Identity Center login. The credentials are managed by the AWS CLI and boto3; the extension does not collect or store AWS credentials. After login, call `aws_account_summary` with `{"profile": "my-profile"}` to verify the connected account. The MCP server must be installed with the `boto3` dependency (included automatically when installing the wheel).
+To use IAM Identity Center instead, run **AWS Resource Optimization: Configure AWS SSO** or `@awsro /login-sso`. Complete the AWS CLI prompts and browser login in the terminal that opens. Credentials are managed by the AWS CLI and boto3; the extension does not collect or store AWS credentials. The MCP server must be installed with the `boto3` dependency (included automatically when installing the wheel).
 
 ## Contributors
 
