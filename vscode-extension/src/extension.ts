@@ -144,9 +144,12 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    if (request.command === 'version' || request.command === 'about') {
+    if (request.command === 'version' || request.command === 'about' || request.command === 'about-app') {
       const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
-      const result = cp.spawnSync(bin, [request.command === 'about' ? '--about' : '/version'], {
+      const args = request.command === 'version'
+        ? ['/version']
+        : [request.command === 'about' ? '--about' : '--about-app'];
+      const result = cp.spawnSync(bin, args, {
         env: {
           ...process.env,
           APP_ENV: process.env.APP_ENV || 'dev',
@@ -164,13 +167,15 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       stream.markdown(request.command === 'about'
-        ? `### About this Application\n\n\`\`\`text\n${(result.stdout || '').trim() || 'No application details returned.'}\n\`\`\``
-        : `AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
+        ? `### About this Application\n\n${(result.stdout || '').trim() || 'No application details returned.'}`
+        : request.command === 'about-app'
+          ? `### Package Metadata\n\n\`\`\`text\n${(result.stdout || '').trim() || 'No package metadata returned.'}\n\`\`\``
+          : `AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
       return;
     }
 
     const prompt = request.command === 'help'
-      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about, /login, /account-summary, /report, and /help. Explain that /login starts AWS IAM Identity Center (SSO) setup in a VS Code terminal, and the MCP aws_account_summary tool verifies a configured profile.'
+      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about (application information), /about-app (detailed installed package metadata), /login, /account-summary, /report, and /help. Explain that /login starts AWS IAM Identity Center (SSO) setup in a VS Code terminal, and the MCP aws_account_summary tool verifies a configured profile.'
       : request.command === 'account-summary'
         ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
         : request.command === 'report'

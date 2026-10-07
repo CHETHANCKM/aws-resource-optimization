@@ -57,6 +57,33 @@ def get_application_info() -> str:
     package = distribution("aws-resource-optimization-mcp")
     metadata = package.metadata
     author = metadata.get("Author", "")
+    if not author:
+        author, _ = parseaddr(metadata.get("Author-email", ""))
+
+    home_page = metadata.get("Home-page", "")
+    if not home_page:
+        for project_url in metadata.get_all("Project-URL", []):
+            label, separator, url = project_url.partition(",")
+            if separator and label.strip().lower() == "homepage":
+                home_page = url.strip()
+                break
+
+    fields = [
+        f"Name: {metadata.get('Name', 'aws-resource-optimization-mcp')}",
+        f"Version: {package.version}",
+        f"Summary: {metadata.get('Summary', '')}",
+        f"Home-page: [{home_page}]({home_page})" if home_page else "Home-page: ",
+        f"Author: {author}",
+        f"License: {metadata.get('License') or metadata.get('License-Expression', '')}",
+        f"Python: {sys.version.split()[0]}",
+    ]
+    return "\n".join(fields)
+
+
+def get_package_metadata() -> str:
+    package = distribution("aws-resource-optimization-mcp")
+    metadata = package.metadata
+    author = metadata.get("Author", "")
     author_email, parsed_email = parseaddr(metadata.get("Author-email", ""))
     if author_email and not author:
         author = author_email
@@ -141,6 +168,9 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args and args[0] in {"/about", "--about"}:
         print(get_application_info())
+        return
+    if args and args[0] in {"/about-app", "--about-app"}:
+        print(get_package_metadata())
         return
     mcp.run(transport="stdio")
 

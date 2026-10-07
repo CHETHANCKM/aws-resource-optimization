@@ -58,7 +58,11 @@
           },
           {
             "name": "about",
-            "description": "Show Python, package, and installation details."
+            "description": "Show concise application information."
+          },
+          {
+            "name": "about-app",
+            "description": "Show detailed installed package metadata."
           },
           {
             "name": "login",

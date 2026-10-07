@@ -18,8 +18,6 @@ Version format:
 - Production: `v0.1.0`
 - Development: `v0.1.0-<short-commit-sha>`
 
-Development wheel metadata uses the corresponding PEP 440 local version, `0.1.0+dev.<short-commit-sha>`. Its filename remains a standard pip-compatible wheel, for example `aws_resource_optimization_mcp-0.1.0+dev.abc123d-py3-none-any.whl`.
-
 When the app runs in dev mode, the CLI prints the stable version plus the short commit SHA. Production installs print the stable tag only.
 
 ## What the MCP server provides
@@ -39,7 +37,7 @@ The VSIX is distributed as a GitHub Release asset and is not published to the Vi
 2. In VS Code, open the Command Palette, run `Extensions: Install from VSIX...`, and select the downloaded file.
 3. To update later, download the newer `.vsix` from its GitHub Release and install it the same way. VS Code will not auto-update this manually distributed extension.
 
-When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker for the repository custom agent, or mention `@awsro` for the extension chat participant and its `/version`, `/about`, `/login`, `/account-summary`, `/report`, and `/help` commands. The agent profile is workspace-scoped; `@awsro` is provided by the installed extension. Run `@awsro /login` or **AWS Resource Optimization: Configure AWS SSO** from the Command Palette to configure and sign in to an AWS CLI profile. Complete the prompts in the opened terminal. Then call the MCP `aws_account_summary` tool and provide the configured profile name to verify the AWS connection.
+When this repository is open in VS Code, select **AWSRO** from the Chat Agent picker for the repository custom agent, or mention `@awsro` for the extension chat participant and its `/version`, `/about`, `/about-app`, `/login`, `/account-summary`, `/report`, and `/help` commands. `/about` shows concise application information; `/about-app` shows detailed installed package metadata. The agent profile is workspace-scoped; `@awsro` is provided by the installed extension. Run `@awsro /login` or **AWS Resource Optimization: Configure AWS SSO** from the Command Palette to configure and sign in to an AWS CLI profile. Complete the prompts in the opened terminal. Then call the MCP `aws_account_summary` tool and provide the configured profile name to verify the AWS connection.
 
 ### Install the MCP server
 

@@ -3,7 +3,14 @@ import asyncio
 import aws_resource_mcp
 from aws_resource_mcp import __version__, get_version, read_version
 from aws_resource_mcp import server
-from aws_resource_mcp.server import aws_account_summary, aws_report, get_application_info, get_version_with_env, mcp
+from aws_resource_mcp.server import (
+    aws_account_summary,
+    aws_report,
+    get_application_info,
+    get_package_metadata,
+    get_version_with_env,
+    mcp,
+)
 
 
 def test_server_imports():
@@ -133,17 +140,57 @@ def test_application_info_includes_installed_distribution_metadata(monkeypatch, 
 
     info = get_application_info()
 
-    assert "Python 3.13.1" in info
-    assert "Name: aws-resource-optimization-mcp" in info
-    assert "Version: 0.1.0+dev.abc123d" in info
-    assert "Home-page: https://github.com/CHETHANCKM/aws-resource-optimization" in info
-    assert "Author: Chethan" in info
-    assert "Author-email: cchethans14@gmail.com" in info
-    assert "License: MIT" in info
-    assert f"Location: {tmp_path / 'site-packages'}" in info
-    assert "Requires: mcp" in info
-    assert "pytest" not in next(line for line in info.splitlines() if line.startswith("Requires:"))
-    assert "Required-by: " in info
+    assert info == "\n".join([
+        "Name: aws-resource-optimization-mcp",
+        "Version: 0.1.0+dev.abc123d",
+        "Summary: Minimal MCP starter server for AWS Resource Optimization",
+        "Home-page: [https://github.com/CHETHANCKM/aws-resource-optimization](https://github.com/CHETHANCKM/aws-resource-optimization)",
+        "Author: Chethan",
+        "License: MIT",
+        "Python: 3.13.1",
+    ])
+
+
+def test_package_metadata_includes_detailed_distribution_info(monkeypatch, tmp_path):
+    class FakeMetadata(dict):
+        def get_all(self, key, default=None):
+            return self.get(key, default or [])
+
+    class FakeDistribution:
+        metadata = FakeMetadata({
+            "Name": "aws-resource-optimization-mcp",
+            "Version": "0.1.0+dev.abc123d",
+            "Summary": "Minimal MCP starter server for AWS Resource Optimization",
+            "Project-URL": ["Homepage, https://github.com/CHETHANCKM/aws-resource-optimization"],
+            "Author-email": "Chethan <cchethans14@gmail.com>",
+            "License": "MIT",
+        })
+        version = "0.1.0+dev.abc123d"
+        requires = ["mcp<2.0.0,>=1.0.0", "pytest>=8.0.0; extra == 'test'"]
+
+        def locate_file(self, path):
+            assert path == ""
+            return tmp_path / "site-packages"
+
+    monkeypatch.setattr(server, "distribution", lambda name: FakeDistribution())
+    monkeypatch.setattr(server, "distributions", lambda: [])
+    monkeypatch.setattr(server.sys, "version", "3.13.1 (test build)")
+
+    info = get_package_metadata()
+
+    assert info == "\n".join([
+        "Python 3.13.1",
+        "Name: aws-resource-optimization-mcp",
+        "Version: 0.1.0+dev.abc123d",
+        "Summary: Minimal MCP starter server for AWS Resource Optimization",
+        "Home-page: https://github.com/CHETHANCKM/aws-resource-optimization",
+        "Author: Chethan",
+        "Author-email: cchethans14@gmail.com",
+        "License: MIT",
+        f"Location: {tmp_path / 'site-packages'}",
+        "Requires: mcp",
+        "Required-by: ",
+    ])
 
 
 def test_about_cli_option_prints_application_info(monkeypatch, capsys):
@@ -152,3 +199,11 @@ def test_about_cli_option_prints_application_info(monkeypatch, capsys):
     server.main(["--about"])
 
     assert capsys.readouterr().out == "Application details\n"
+
+
+def test_about_app_cli_option_prints_package_metadata(monkeypatch, capsys):
+    monkeypatch.setattr(server, "get_package_metadata", lambda: "Detailed metadata")
+
+    server.main(["--about-app"])
+
+    assert capsys.readouterr().out == "Detailed metadata\n"
