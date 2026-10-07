@@ -32,24 +32,24 @@ The tool returns:
 ```text
 AWS Resource Optimization MCP is running.
 ```
-The VSIX adds VS Code commands, but it does not contain the Python MCP server. The Python wheel and VS Code extension are published separately.
+The VSIX is distributed as a GitHub Release asset and is not published to the Visual Studio Marketplace. Download the `.vsix` and Python `.whl` assets from the same release. Cloning the repository is not required.
 
-### VS Code extension with automatic updates
+### Install the VS Code extension
 
-For automatic extension updates, install **AWS Resource Optimization MCP** from the Visual Studio Marketplace. VS Code checks for Marketplace extension updates automatically. You can also download the `.vsix` from the GitHub Release and install it with `Extensions: Install from VSIX...`; Marketplace availability is required for native updates.
-
-Stable releases are published to the Marketplace normally. Dev builds are published as prereleases; select the extension's prerelease version in VS Code to receive dev updates.
+1. Download the `.vsix` file from the GitHub Release.
+2. In VS Code, open the Command Palette, run `Extensions: Install from VSIX...`, and select the downloaded file.
+3. To update later, download the newer `.vsix` from its GitHub Release and install it the same way. VS Code will not auto-update this manually distributed extension.
 
 ### Install the MCP server
 
-Download the `.whl` asset from the same GitHub Release and install it in a virtual environment. Cloning the repository is not required:
+Install the Python wheel in a virtual environment:
 
 ```bash
 python3 -m venv ~/.local/share/aws-resource-optimization/venv
 ~/.local/share/aws-resource-optimization/venv/bin/python -m pip install /path/to/downloaded/aws_resource_optimization_mcp-<version>-py3-none-any.whl
 ```
 
-The extension and Python server are separate components. Updating the VS Code extension does not update the Python wheel; install a newer wheel separately when a new server release is available.
+The VSIX and Python MCP server are separate components. Updating the VSIX does not update the Python wheel; install a newer wheel separately when needed.
 
 ### Configure VS Code MCP
 
@@ -106,9 +106,7 @@ This starts the MCP server using stdio transport, which is the common setup for 
 
 ## Release process
 
-The project uses GitHub Actions to validate and publish releases on pushes to either `main` or `dev`. The workflow publishes the VS Code extension to the Visual Studio Marketplace, which enables VS Code's built-in extension update checks.
-
-Before Marketplace publishing can work, create a Marketplace publisher whose ID matches the `publisher` field in `vscode-extension/package.json`, create a publishing token, and save it as the GitHub Actions repository secret `VSCE_PAT`.
+The project uses GitHub Actions to validate and publish releases on pushes to either `main` or `dev`. It packages the VSIX and attaches it to the GitHub Release; it does not publish to the Visual Studio Marketplace and requires no Marketplace publishing token.
 
 The workflow:
 
@@ -116,7 +114,7 @@ The workflow:
 2. validates it as `MAJOR.MINOR.PATCH`
 3. runs tests
 4. builds the Python package
-5. builds and publishes the VSIX to the Marketplace
+5. builds the VSIX
 6. creates a branch-specific version tag
 7. creates a GitHub Release with the release name
 8. attaches the artifacts from `dist/` and `vscode-extension/*.vsix`

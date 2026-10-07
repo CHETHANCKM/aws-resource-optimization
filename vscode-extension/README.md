@@ -4,9 +4,9 @@ An MCP server and VS Code extension for AWS resource optimization.
 
 Current extension version: v0.1.0
 
-Install the extension from the Visual Studio Marketplace for automatic extension updates. The Python MCP server is a separate component; install its wheel from the matching GitHub Release and configure the server in your MCP client.
+This extension is distributed as a VSIX on GitHub Releases and is not published to the Visual Studio Marketplace. Install it with VS Code's `Extensions: Install from VSIX...` command. To update, download the newer VSIX from a later release and install it manually; automatic extension updates are not available for this distribution method.
 
-Use the `AWS Resource Optimization: Show Version` command to verify that the server executable is available. In Chat, start the configured MCP server and invoke `aws_account_summary` to test the connection. This tool currently returns a placeholder response and does not inspect AWS resources.
+The Python MCP server is a separate component and must be installed from the wheel attached to the release, then configured in your MCP client. Use the `AWS Resource Optimization: Show Version` command to verify the server executable is available. The `aws_account_summary` tool currently returns a placeholder response and does not inspect AWS resources.
 
 ## Contributors
 

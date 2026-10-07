@@ -86,22 +86,6 @@ jobs:
           npm run compile
           npx @vscode/vsce package
 
-      - name: Publish extension to Visual Studio Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: |
-          if [[ -z "$VSCE_PAT" ]]; then
-            echo "Configure the VSCE_PAT repository secret with a Visual Studio Marketplace publishing token."
-            exit 1
-          fi
-
-          cd vscode-extension
-          if [[ "${GITHUB_REF_NAME}" == "dev" ]]; then
-            npx @vscode/vsce publish --pre-release
-          else
-            npx @vscode/vsce publish
-          fi
-
       - name: Create tag
         env:
           TAG: ${{ steps.version.outputs.tag }}
