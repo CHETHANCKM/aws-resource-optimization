@@ -58,6 +58,7 @@ jobs:
           echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
           echo "extension_version=${EXTENSION_VERSION}" >> "$GITHUB_OUTPUT"
           echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "wheel_url_version=${PACKAGE_VERSION//+/%2B}" >> "$GITHUB_OUTPUT"
 
           if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
             echo "Release ${TAG} already exists. Update VERSION before pushing."
@@ -79,6 +80,22 @@ jobs:
           printf '%s\n' "$PACKAGE_VERSION" > VERSION
           python -m pip install --upgrade build
           python -m build
+
+      - name: Create copy-paste install instructions
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
+          WHEEL_URL_VERSION: ${{ steps.version.outputs.wheel_url_version }}
+        run: |
+          cat > dist/INSTALL.txt <<EOF
+          AWS Resource Optimization MCP Python install
+
+          Copy and run this command:
+
+          python -m pip install "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/aws_resource_optimization_mcp-${WHEEL_URL_VERSION}-py3-none-any.whl"
+
+          Wheel package version: ${PACKAGE_VERSION}
+          EOF
 
       - name: Build VSIX
         env:
