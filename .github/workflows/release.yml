@@ -45,16 +45,19 @@ jobs:
             TAG="v${BASE_VERSION}-${SHORT_SHA}"
             RELEASE_NAME="${BASE_VERSION}-${SHORT_SHA}"
             EXTENSION_VERSION="${BASE_VERSION}-${SHORT_SHA}"
+            PACKAGE_VERSION="${BASE_VERSION}+dev.${SHORT_SHA}"
           else
             TAG="v${BASE_VERSION}"
             RELEASE_NAME="${BASE_VERSION}"
             EXTENSION_VERSION="${BASE_VERSION}"
+            PACKAGE_VERSION="${BASE_VERSION}"
           fi
 
           echo "base_version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
           echo "extension_version=${EXTENSION_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "package_version=${PACKAGE_VERSION}" >> "$GITHUB_OUTPUT"
 
           if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
             echo "Release ${TAG} already exists. Update VERSION before pushing."
@@ -70,7 +73,10 @@ jobs:
         run: pytest -q
 
       - name: Build Python package
+        env:
+          PACKAGE_VERSION: ${{ steps.version.outputs.package_version }}
         run: |
+          printf '%s\n' "$PACKAGE_VERSION" > VERSION
           python -m pip install --upgrade build
           python -m build
 

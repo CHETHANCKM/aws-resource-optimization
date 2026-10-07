@@ -35,6 +35,11 @@ def get_short_commit_sha() -> str | None:
 
 
 def get_version_with_env() -> str:
+    if "+dev." in __version__:
+        base_version, short_sha = __version__.split("+dev.", 1)
+        if short_sha:
+            return f"v{base_version}-{short_sha}"
+
     version = f"v{__version__}"
     if get_current_env() == "dev":
         short_sha = get_short_commit_sha()

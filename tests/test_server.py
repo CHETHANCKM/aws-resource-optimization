@@ -2,6 +2,7 @@ import asyncio
 
 import aws_resource_mcp
 from aws_resource_mcp import __version__, get_version, read_version
+from aws_resource_mcp import server
 from aws_resource_mcp.server import aws_account_summary, aws_report, get_version_with_env, mcp
 
 
@@ -55,3 +56,13 @@ def test_version_command_output(monkeypatch):
 
     monkeypatch.setenv("APP_ENV", "prod")
     assert get_version_with_env() == f"v{__version__}"
+
+
+def test_dev_wheel_version_uses_embedded_commit_sha(monkeypatch):
+    monkeypatch.setattr(server, "__version__", "0.1.0+dev.abc123d")
+    monkeypatch.delenv("APP_ENV", raising=False)
+    monkeypatch.delenv("ENV", raising=False)
+    monkeypatch.delenv("GIT_COMMIT_SHA", raising=False)
+    monkeypatch.delenv("GITHUB_SHA", raising=False)
+
+    assert get_version_with_env() == "v0.1.0-abc123d"

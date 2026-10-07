@@ -18,6 +18,8 @@ Version format:
 - Production: `v0.1.0`
 - Development: `v0.1.0-<short-commit-sha>`
 
+Development wheel metadata uses the corresponding PEP 440 local version, `0.1.0+dev.<short-commit-sha>`. Its filename remains a standard pip-compatible wheel, for example `aws_resource_optimization_mcp-0.1.0+dev.abc123d-py3-none-any.whl`.
+
 When the app runs in dev mode, the CLI prints the stable version plus the short commit SHA. Production installs print the stable tag only.
 
 ## What the MCP server provides
