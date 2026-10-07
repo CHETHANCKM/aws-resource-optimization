@@ -17,7 +17,7 @@
   ],
   "activationEvents": [
     "onCommand:aws-resource-optimization.showVersion",
-    "onChatParticipant:aws-resource-optimization-mcp-vsix.awsopt"
+    "onChatParticipant:aws-resource-optimization-mcp-vsix.awsro"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -41,9 +41,9 @@
     ],
     "chatParticipants": [
       {
-        "id": "aws-resource-optimization-mcp-vsix.awsopt",
-        "name": "awsopt",
-        "fullName": "AWS Resource Optimization",
+        "id": "aws-resource-optimization-mcp-vsix.awsro",
+        "name": "awsro",
+        "fullName": "AWSRO",
         "description": "Analyze AWS resource and cost data you provide.",
         "isSticky": true,
         "commands": [

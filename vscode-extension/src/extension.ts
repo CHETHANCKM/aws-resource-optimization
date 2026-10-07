@@ -1,7 +1,7 @@
 import * as cp from 'child_process';
 import * as vscode from 'vscode';
 
-const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsopt';
+const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsro';
 
 export function activate(context: vscode.ExtensionContext) {
   const showVersion = vscode.commands.registerCommand('aws-resource-optimization.showVersion', () => {
@@ -103,7 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  const awsopt = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
+  const awsro = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
     if (request.command === 'version') {
       const bin = vscode.workspace.getConfiguration().get<string>('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
       const result = cp.spawnSync(bin, ['/version'], {
@@ -128,7 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     const prompt = request.command === 'help'
-      ? 'Explain that this chat participant is @awsopt. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
+      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
       : request.command === 'account-summary'
         ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
         : request.command === 'report'
@@ -149,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(showVersion, syncCommands, awsopt);
+  context.subscriptions.push(showVersion, syncCommands, awsro);
 }
 
 export function deactivate() {}

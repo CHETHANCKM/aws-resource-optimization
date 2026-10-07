@@ -37,7 +37,7 @@ exports.activate = activate;
 exports.deactivate = deactivate;
 const cp = __importStar(require("child_process"));
 const vscode = __importStar(require("vscode"));
-const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsopt';
+const chatParticipantId = 'aws-resource-optimization-mcp-vsix.awsro';
 function activate(context) {
     const showVersion = vscode.commands.registerCommand('aws-resource-optimization.showVersion', () => {
         const bin = vscode.workspace.getConfiguration().get('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
@@ -131,7 +131,7 @@ function activate(context) {
             vscode.window.showErrorMessage(`Failed to read/parse commands file: ${String(err)}`);
         }
     });
-    const awsopt = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
+    const awsro = vscode.chat.createChatParticipant(chatParticipantId, async (request, _chatContext, stream, token) => {
         if (request.command === 'version') {
             const bin = vscode.workspace.getConfiguration().get('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
             const result = cp.spawnSync(bin, ['/version'], {
@@ -153,7 +153,7 @@ function activate(context) {
             return;
         }
         const prompt = request.command === 'help'
-            ? 'Explain that this chat participant is @awsopt. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
+            ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /account-summary, /report, and /help. Clarify that it can analyze AWS data supplied by the user but does not itself connect to an AWS account.'
             : request.command === 'account-summary'
                 ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
                 : request.command === 'report'
@@ -169,6 +169,6 @@ function activate(context) {
             stream.markdown(`Unable to get a response from the selected chat model: ${error instanceof Error ? error.message : String(error)}`);
         }
     });
-    context.subscriptions.push(showVersion, syncCommands, awsopt);
+    context.subscriptions.push(showVersion, syncCommands, awsro);
 }
 function deactivate() { }
