@@ -491,8 +491,17 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
+    if (request.command === 'pull-latest-mcp') {
+      try {
+        stream.markdown(await pullLatestMcp());
+      } catch (error) {
+        stream.markdown(`Could not update the AWS Resource Optimization MCP: ${error instanceof Error ? error.message : String(error)}`);
+      }
+      return;
+    }
+
     const prompt = request.command === 'help'
-      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about (application information), /about-app (detailed installed package metadata), /login (import aws-credentials.csv and verify AWS identity), /login-sso (configure IAM Identity Center), /logout (clear all cached SSO sessions and delete the shared AWS credentials file after confirmation; environment-provided credentials are unchanged), /account-summary, /report, and /help. Explain the logout confirmation warns that other applications may use the credentials file.'
+      ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about (application information), /about-app (detailed installed package metadata), /pull-latest-mcp (install the latest GitHub MCP wheel, restart the MCP server, and verify the installed version), /login (import aws-credentials.csv and verify AWS identity), /login-sso (configure IAM Identity Center), /logout (clear all cached SSO sessions and delete the shared AWS credentials file after confirmation; environment-provided credentials are unchanged), /account-summary, /report, and /help. Explain the logout confirmation warns that other applications may use the credentials file.'
       : request.command === 'account-summary'
         ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
         : request.command === 'report'

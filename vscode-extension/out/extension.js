@@ -258,6 +258,58 @@ function activate(context) {
         const output = (result.stdout || '').trim() || (result.stderr || '').trim() || 'unknown';
         vscode.window.showInformationMessage(`AWS Resource Optimization MCP version: ${output}`);
     });
+    const pullLatestMcp = async () => {
+        const configuration = vscode.workspace.getConfiguration();
+        const binaryPath = configuration.get('awsResourceOptimization.binaryPath') || 'aws-resource-optimization-mcp';
+        const serverId = configuration.get('awsResourceOptimization.mcpServerId') || 'aws-resource-optimization';
+        const commands = await vscode.commands.getCommands(true);
+        if (!commands.includes(stopMcpServerCommand) || !commands.includes(startMcpServerCommand)) {
+            throw new Error('This VS Code version does not expose MCP stop/start commands. Update VS Code, then retry.');
+        }
+        const pythonPath = await resolveMcpPython(binaryPath);
+        const installedVersion = await getInstalledMcpVersion(pythonPath);
+        const latest = await getLatestMcpWheel();
+        const confirmation = await vscode.window.showWarningMessage(`Install MCP ${latest.version} from the AWS Resource Optimization GitHub release and restart server '${serverId}'? Current version: ${installedVersion}.`, { modal: true }, 'Update and Restart');
+        if (confirmation !== 'Update and Restart') {
+            return 'MCP update cancelled; no changes were made.';
+        }
+        let stopped = false;
+        try {
+            await vscode.commands.executeCommand(stopMcpServerCommand, serverId);
+            stopped = true;
+            if (installedVersion !== latest.version) {
+                await execFile(pythonPath, ['-m', 'pip', 'install', '--upgrade', latest.url], {
+                    encoding: 'utf8',
+                    windowsHide: true,
+                    timeout: 300_000,
+                    maxBuffer: 10 * 1024 * 1024,
+                });
+            }
+            await vscode.commands.executeCommand(startMcpServerCommand, serverId);
+            stopped = false;
+            const verifiedVersion = await getInstalledMcpVersion(pythonPath);
+            if (verifiedVersion !== latest.version) {
+                throw new Error(`The MCP restarted, but verification found ${verifiedVersion} instead of ${latest.version}.`);
+            }
+            return installedVersion === latest.version
+                ? `Restarted MCP server '${serverId}'. Verified version ${verifiedVersion} is the latest GitHub release.`
+                : `Installed and restarted MCP server '${serverId}'. Verified version ${verifiedVersion} is the latest GitHub release.`;
+        }
+        catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            if (stopped) {
+                try {
+                    await vscode.commands.executeCommand(startMcpServerCommand, serverId);
+                    return `MCP update failed: ${detail}\nThe server was started again.`;
+                }
+                catch (restartError) {
+                    const restartDetail = restartError instanceof Error ? restartError.message : String(restartError);
+                    return `MCP update failed: ${detail}\nThe server could not be restarted: ${restartDetail}. Start '${serverId}' from the VS Code MCP view.`;
+                }
+            }
+            return `MCP update failed: ${detail}`;
+        }
+    };
     const syncCommands = vscode.commands.registerCommand('aws-resource-optimization.syncCommands', async () => {
         const config = vscode.workspace.getConfiguration();
         const commandsFile = config.get('awsResourceOptimization.commandsFile') || 'vscode-extension/commands.json';
@@ -392,8 +444,17 @@ function activate(context) {
                     : `AWS Resource Optimization MCP version: ${(result.stdout || '').trim() || 'unknown'}`);
             return;
         }
+        if (request.command === 'pull-latest-mcp') {
+            try {
+                stream.markdown(await pullLatestMcp());
+            }
+            catch (error) {
+                stream.markdown(`Could not update the AWS Resource Optimization MCP: ${error instanceof Error ? error.message : String(error)}`);
+            }
+            return;
+        }
         const prompt = request.command === 'help'
-            ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about (application information), /about-app (detailed installed package metadata), /login (import aws-credentials.csv and verify AWS identity), /login-sso (configure IAM Identity Center), /logout (clear all cached SSO sessions and delete the shared AWS credentials file after confirmation; environment-provided credentials are unchanged), /account-summary, /report, and /help. Explain the logout confirmation warns that other applications may use the credentials file.'
+            ? 'Explain that this chat participant is @awsro and the custom agent is AWSRO. Document /version, /about (application information), /about-app (detailed installed package metadata), /pull-latest-mcp (install the latest GitHub MCP wheel, restart the MCP server, and verify the installed version), /login (import aws-credentials.csv and verify AWS identity), /login-sso (configure IAM Identity Center), /logout (clear all cached SSO sessions and delete the shared AWS credentials file after confirmation; environment-provided credentials are unchanged), /account-summary, /report, and /help. Explain the logout confirmation warns that other applications may use the credentials file.'
             : request.command === 'account-summary'
                 ? `Summarize only the AWS account and resource data included in the user's message. If no actual account data is present, say that explicitly and ask the user to provide it. Do not claim to have queried AWS.\n\n${request.prompt}`
                 : request.command === 'report'

@@ -75,6 +75,10 @@
             "description": "Show detailed installed package metadata."
           },
           {
+            "name": "pull-latest-mcp",
+            "description": "Install the latest GitHub MCP release, restart it, and verify its version."
+          },
+          {
             "name": "login",
             "description": "Import aws-credentials.csv and verify AWS identity."
           },
@@ -108,6 +112,11 @@
           "type": "string",
           "default": "aws-resource-optimization-mcp",
           "description": "Path to the aws-resource-optimization-mcp binary. Use full path if VS Code doesn't inherit shell PATH."
+        },
+        "awsResourceOptimization.mcpServerId": {
+          "type": "string",
+          "default": "aws-resource-optimization",
+          "description": "Server key from the VS Code MCP configuration, used to stop and restart this MCP server."
         },
         "awsResourceOptimization.commandsFile": {
           "type": "string",
