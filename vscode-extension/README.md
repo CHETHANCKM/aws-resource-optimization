@@ -2,7 +2,7 @@
 
 An MCP server and VS Code extension for AWS resource optimization.
 
-Current extension version: v0.1.0
+Current extension version: v0.1.1
 
 This extension is distributed as a VSIX on GitHub Releases and is not published to the Visual Studio Marketplace. Install it with VS Code's `Extensions: Install from VSIX...` command. To update, download the newer VSIX from a later release and install it manually; automatic extension updates are not available for this distribution method.
 

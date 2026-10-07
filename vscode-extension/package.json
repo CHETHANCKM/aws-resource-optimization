@@ -1,8 +1,8 @@
 {
   "name": "aws-resource-optimization-mcp-vsix",
   "displayName": "AWS Resource Optimization MCP",
-  "description": "AWS Resource Optimization MCP extension (v0.1.0).",
-  "version": "0.1.0",
+  "description": "AWS Resource Optimization MCP extension (v0.1.1).",
+  "version": "0.1.1",
   "publisher": "aws-resource-optimization",
   "license": "MIT",
   "repository": {
