@@ -114,16 +114,16 @@ jobs:
           git tag --force latest "$TAG"
           git push --force origin refs/tags/latest
 
-      - name: Keep only the two latest releases
+      - name: Keep only the latest release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           old_tags="$(gh release list --limit 1000 --json tagName,createdAt,isDraft \
-            --jq 'map(select(.isDraft == false)) | sort_by(.createdAt) | reverse | .[2:] | .[].tagName')"
+            --jq 'map(select(.isDraft == false)) | sort_by(.createdAt) | reverse | .[1:] | .[].tagName')"
 
           if [[ -z "$old_tags" ]]; then
-            echo "Two or fewer published releases exist; nothing to delete."
+            echo "One or fewer published releases exist; nothing to delete."
             exit 0
           fi
 

@@ -119,9 +119,7 @@ The workflow:
 7. creates a GitHub Release with the release name
 8. attaches the artifacts from `dist/` and `vscode-extension/*.vsix`
 9. moves the `latest` Git tag to the newly published commit
-10. keeps only the two newest published releases total across `main` and `dev`, deleting older releases and their version tags
-
-The `latest` Git tag is a movable alias for the newest release across both branches. Each release's version tag, such as `v0.1.0` or `v0.1.0-abc123d`, remains version-specific.
+10. keeps only the newest published release across `main` and `dev`, deleting older releases and their version tags.
 ```text
 v0.1.0
 ```
