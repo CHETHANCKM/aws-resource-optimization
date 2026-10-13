@@ -11,3 +11,6 @@ dist/
 build/
 .DS_Store
 */node_modules/*
+
+# Generated reports contain account IDs
+aws-optimization-report-*.html
