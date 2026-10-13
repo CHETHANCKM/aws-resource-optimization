@@ -11,6 +11,7 @@ import boto3
 from mcp.server.fastmcp import FastMCP
 
 from aws_resource_mcp import __version__
+from aws_resource_mcp import report as report_module
 
 mcp = FastMCP("AWS Resource Optimization")
 
@@ -148,6 +149,38 @@ def aws_account_summary(profile: str | None = None) -> str:
         f"Connected to AWS account {identity['Account']}.\n"
         f"ARN: {identity['Arn']}\n"
         f"User ID: {identity['UserId']}"
+    )
+
+
+@mcp.tool()
+def generate_report(
+    profile: str | None = None,
+    regions: list[str] | None = None,
+    output_path: str | None = None,
+) -> str:
+    """Generate a detailed HTML optimization report (read-only).
+
+    Covers EC2, EBS and RDS with 30/15/7-day usage, required vs configured
+    limits, status, annual cost and savings if fixed. Writes the HTML file and
+    returns its path with a short summary.
+    """
+    from datetime import datetime, timezone
+    from pathlib import Path
+
+    session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+    account = session.client("sts").get_caller_identity()["Account"]
+    selected = regions or report_module.default_regions(session)
+    collector = report_module.Collector(session)
+    findings = collector.collect(selected)
+    now = datetime.now(timezone.utc)
+    document = report_module.render_html(findings, account, selected, now, collector.warnings)
+    path = Path(output_path or f"aws-optimization-report-{account}-{now:%Y%m%d-%H%M%S}.html").expanduser().resolve()
+    path.write_text(document, encoding="utf-8")
+    savings = sum(f.savings or 0 for f in findings)
+    return (
+        f"Report written to {path}\n"
+        f"Resources analyzed: {len(findings)} in {', '.join(selected)}\n"
+        f"Estimated annual savings if fixed: ${savings:,.0f}"
     )
 
 
