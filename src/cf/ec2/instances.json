@@ -1,0 +1,8 @@
+{
+  "name_suffix": "-dev",
+  "instances": [
+    {"name": "awsro-test-idle-large", "instance_type": "t3.large", "profile": "idle", "volume_gb": 8},
+    {"name": "awsro-test-busy-small", "instance_type": "t3.small", "profile": "busy", "volume_gb": 8},
+    {"name": "awsro-test-steady-medium", "instance_type": "t3.medium", "profile": "steady", "volume_gb": 8}
+  ]
+}

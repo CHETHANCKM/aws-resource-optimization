@@ -1,0 +1,9 @@
+{
+  "name_suffix": "-dev",
+  "functions": [
+    {"name": "awsro-test-overprovisioned", "memory": 3008, "timeout": 30, "behavior": "noop", "payload": {}, "invoke": true},
+    {"name": "awsro-test-underprovisioned", "memory": 128, "timeout": 60, "behavior": "cpu", "payload": {"n": 5000000}, "invoke": true},
+    {"name": "awsro-test-flaky", "memory": 256, "timeout": 10, "behavior": "flaky", "payload": {"fail_rate": 0.3}, "invoke": true},
+    {"name": "awsro-test-unused", "memory": 512, "timeout": 10, "behavior": "noop", "payload": {}, "invoke": false}
+  ]
+}

@@ -50,11 +50,15 @@ jobs:
           role-to-assume: arn:aws:iam::437563065463:role/github-automation-policy
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Render template from config
+        if: steps.gate.outputs.run == 'true'
+        run: python3 src/cf/generate.py ${{ matrix.stack }}
+
       - name: Deploy CloudFormation stack
         if: steps.gate.outputs.run == 'true'
         run: |
           aws cloudformation deploy \
-            --template-file src/cf/${{ matrix.stack }}/template.yaml \
+            --template-file src/cf/${{ matrix.stack }}/template.json \
             --stack-name awsro-test-${{ matrix.stack }}-dev \
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset
