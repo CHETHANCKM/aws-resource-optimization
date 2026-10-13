@@ -1,0 +1,51 @@
+name: Destroy Test Stacks
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Which stack(s) to destroy'
+        required: true
+        default: all
+        type: choice
+        options: [all, ec2, lambda]
+      confirm:
+        description: 'Type "destroy" to confirm stack deletion'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  destroy:
+    name: Delete CloudFormation stacks
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'destroy'
+    steps:
+      - name: Configure AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::437563065463:role/github-automation-policy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete CloudFormation stacks
+        run: |
+          target="${{ github.event.inputs.target }}"
+          stacks=""
+          for s in ec2 lambda; do
+            if [ "$target" = "all" ] || [ "$target" = "$s" ]; then
+              stacks="$stacks awsro-test-$s-dev"
+            fi
+          done
+          for stack in $stacks; do
+            aws cloudformation delete-stack --stack-name "$stack" --no-cli-pager
+          done
+          for stack in $stacks; do
+            echo "Waiting for $stack deletion..."
+            aws cloudformation wait stack-delete-complete --stack-name "$stack" --no-cli-pager
+            echo "Stack '$stack' deleted."
+          done

@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Test EC2 instances with different utilization profiles for AWSRO report testing.
+
+Parameters:
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  SubnetId:
+    Type: String
+    Default: ""
+    Description: Optional subnet; leave empty to use the default VPC.
+
+Conditions:
+  HasSubnet: !Not [!Equals [!Ref SubnetId, ""]]
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  # Large instance that stays idle -> expected "Underutilized"/"Idle"
+  IdleLarge:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.large
+      ImageId: !Ref LatestAmiId
+      SubnetId: !If [HasSubnet, !Ref SubnetId, !Ref "AWS::NoValue"]
+      IamInstanceProfile: !Ref InstanceProfile
+      Tags:
+        - { Key: Name, Value: awsro-test-idle-large-dev }
+        - { Key: Purpose, Value: awsro-test }
+        - { Key: Profile, Value: idle }
+
+  # Small instance driven to high CPU by the load test -> expected "Overutilized"
+  BusySmall:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.small
+      ImageId: !Ref LatestAmiId
+      SubnetId: !If [HasSubnet, !Ref SubnetId, !Ref "AWS::NoValue"]
+      IamInstanceProfile: !Ref InstanceProfile
+      Tags:
+        - { Key: Name, Value: awsro-test-busy-small-dev }
+        - { Key: Purpose, Value: awsro-test }
+        - { Key: Profile, Value: busy }
+
+  # Moderate load -> expected "Right-sized"
+  SteadyMedium:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.medium
+      ImageId: !Ref LatestAmiId
+      SubnetId: !If [HasSubnet, !Ref SubnetId, !Ref "AWS::NoValue"]
+      IamInstanceProfile: !Ref InstanceProfile
+      Tags:
+        - { Key: Name, Value: awsro-test-steady-medium-dev }
+        - { Key: Purpose, Value: awsro-test }
+        - { Key: Profile, Value: steady }
+
+Outputs:
+  IdleLargeId: { Value: !Ref IdleLarge }
+  BusySmallId: { Value: !Ref BusySmall }
+  SteadyMediumId: { Value: !Ref SteadyMedium }
