@@ -1,0 +1,20 @@
+# Load-test targets for scripts/loadtest.py (run with: python3 scripts/loadtest.py run).
+# Each resource must hit `percent` for `minutes`.
+#  - EC2: percent = CPU utilization held on all vCPUs (stress-ng via SSM).
+#  - Lambda: percent = share of the concurrency limit kept busy (invocations loop for the duration).
+
+#python3 -m venv .venv && .venv/bin/pip install -q pyyaml && .venv/bin/python scripts/loadtest.py run
+
+region: us-east-1
+ec2:
+  stack: awsro-test-ec2-dev
+  targets:
+    - {instance: AwsroTestBusySmallId,    percent: 80, minutes: 2}
+    - {instance: AwsroTestSteadyMediumId, percent: 40, minutes: 2}
+    # AwsroTestIdleLargeId omitted on purpose: stays idle
+lambda:
+  concurrency_limit: auto   # "auto" = account limit, or set a number
+  targets:
+    - {function: awsro-test-overprovisioned-dev,  percent: 50, minutes: 1, payload: {}}
+    - {function: awsro-test-underprovisioned-dev, percent: 30, minutes: 1, payload: {n: 5000000}}
+    - {function: awsro-test-flaky-dev,            percent: 20, minutes: 1, payload: {fail_rate: 0.3}}

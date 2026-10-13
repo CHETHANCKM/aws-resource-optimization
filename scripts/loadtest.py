@@ -4,6 +4,7 @@
 #   python3 scripts/loadtest.py lambda --all --invocations 100 --concurrency 10
 #   python3 scripts/loadtest.py ec2 --instance-id i-0a33936a501e3fb58 --cpu-workers 2 --duration 600
 #   python3 scripts/loadtest.py --dry-run ec2 --all --duration 300
+#   python3 scripts/loadtest.py run --params scripts/test-param.yaml   # x% for y minutes, from YAML (needs pyyaml)
 import argparse
 import json
 import subprocess
@@ -90,6 +91,72 @@ def run_ec2(a):
     print(f"sent SSM command {res.stdout.strip()}; watch CPUUtilization in CloudWatch for ~{a.duration}s")
 
 
+def run_params(a):
+    try:
+        import yaml
+    except ImportError:
+        sys.exit("pip install pyyaml")
+    with open(a.params) as f:
+        cfg = yaml.safe_load(f)
+    a.region = cfg.get("region", a.region)
+    threads = []
+
+    ec2 = cfg.get("ec2") or {}
+    if ec2.get("targets"):
+        a.stack = ec2.get("stack", "awsro-test-ec2-dev")
+        out = aws(["cloudformation", "describe-stacks", "--stack-name", a.stack, "--query",
+                   "Stacks[0].Outputs[].[OutputKey,OutputValue]", "--output", "json"], a.profile, a.region)
+        ids = dict(json.loads(out.stdout))
+        for t in ec2["targets"]:
+            iid = ids.get(t["instance"], t["instance"])
+            cmd = (f"(command -v stress-ng >/dev/null || sudo dnf install -y stress-ng || sudo yum install -y stress-ng); "
+                   f"stress-ng --cpu 0 --cpu-load {t['percent']} --timeout {int(t['minutes'] * 60)}s")
+            print(f"EC2 {iid}: {t['percent']}% CPU for {t['minutes']} min")
+            if not a.dry_run:
+                res = aws(["ssm", "send-command", "--document-name", "AWS-RunShellScript",
+                           "--instance-ids", iid, "--parameters", json.dumps({"commands": [cmd]}),
+                           "--timeout-seconds", str(int(t["minutes"] * 60) + 300),
+                           "--query", "Command.CommandId", "--output", "text"], a.profile, a.region)
+                print(f"  SSM command {res.stdout.strip()}")
+
+    lam = cfg.get("lambda") or {}
+    if lam.get("targets"):
+        limit = lam.get("concurrency_limit", "auto")
+        if limit == "auto":
+            limit = int(aws(["lambda", "get-account-settings", "--query",
+                             "AccountLimit.UnreservedConcurrentExecutions", "--output", "text"],
+                            a.profile, a.region).stdout)
+        pool = ThreadPoolExecutor(max_workers=sum(max(1, round(limit * t["percent"] / 100)) for t in lam["targets"]))
+        futures = []
+        for t in lam["targets"]:
+            workers = max(1, round(limit * t["percent"] / 100))
+            deadline = time.time() + t["minutes"] * 60
+            print(f"Lambda {t['function']}: {t['percent']}% of limit {limit} = {workers} concurrent for {t['minutes']} min")
+            if a.dry_run:
+                continue
+
+            def loop(name=t["function"], payload=t.get("payload", {}), deadline=deadline):
+                n = errs = 0
+                while time.time() < deadline:
+                    e, _ = invoke_once(name, payload, a.profile, a.region)
+                    n += 1
+                    errs += e
+                return name, n, errs
+            futures += [pool.submit(loop) for _ in range(workers)]
+        totals = {}
+        for fut in futures:
+            name, n, errs = fut.result()
+            c = totals.setdefault(name, [0, 0])
+            c[0] += n
+            c[1] += errs
+        for name, (n, errs) in totals.items():
+            print(f"  {name}: invocations={n} errors={errs}")
+        pool.shutdown()
+    if a.dry_run:
+        return
+    print("done (EC2 load keeps running on the instances until its duration ends)")
+
+
 def main():
     p = argparse.ArgumentParser(description="Load test awsro-test Lambda functions and EC2 instances.")
     p.add_argument("--profile", help="AWS profile name")
@@ -114,6 +181,10 @@ def main():
     ep.add_argument("--cpu-load", type=int, default=80, help="target CPU %% per worker")
     ep.add_argument("--duration", type=int, default=300, help="seconds")
     ep.set_defaults(func=run_ec2)
+
+    rp = sub.add_parser("run", help="x%% for y minutes per resource, from a YAML file")
+    rp.add_argument("--params", default="scripts/test-param.yaml")
+    rp.set_defaults(func=run_params)
 
     a = p.parse_args()
     a.func(a)
