@@ -27,7 +27,7 @@ jobs:
     if: github.event.inputs.confirm == 'destroy'
     steps:
       - name: Configure AWS via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::437563065463:role/github-automation-policy
           aws-region: ${{ env.AWS_REGION }}

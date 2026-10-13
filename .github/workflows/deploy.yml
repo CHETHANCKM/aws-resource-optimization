@@ -31,7 +31,7 @@ jobs:
         stack: [ec2, lambda]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check target
         id: gate
@@ -45,7 +45,7 @@ jobs:
 
       - name: Configure AWS via OIDC
         if: steps.gate.outputs.run == 'true'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::437563065463:role/github-automation-policy
           aws-region: ${{ env.AWS_REGION }}
