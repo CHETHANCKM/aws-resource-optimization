@@ -105,6 +105,19 @@ aws-resource-optimization-mcp
 ```
 This starts the MCP server using stdio transport, which is the common setup for MCP clients such as VS Code.
 
+## Run the AWS Strands agent
+
+The standalone Strands agent uses the same read-only AWS account and report operations as the MCP server. It uses AWS credentials from the standard boto3 credential chain and the Strands default Bedrock model; configure AWS CLI credentials and enable access to that model in the selected AWS account before running it.
+
+Install the project, then pass a question or task to the agent:
+
+```bash
+python -m pip install .
+aws-resource-optimization-agent "Generate an optimization report for my account"
+```
+
+The agent can verify account identity and generate an HTML report. The MCP server remains available for MCP clients and VS Code integrations.
+
 ## Release process
 
 The project uses GitHub Actions to validate and publish releases on pushes to either `main` or `dev`. It packages the VSIX and attaches it to the GitHub Release; it does not publish to the Visual Studio Marketplace and requires no Marketplace publishing token.

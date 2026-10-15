@@ -1,4 +1,6 @@
 import asyncio
+import sys
+import types
 
 import aws_resource_mcp
 from aws_resource_mcp import __version__, get_version, read_version
@@ -92,6 +94,29 @@ def test_account_summary_uses_requested_aws_profile(monkeypatch):
 def test_prompt_response():
     prompt_text = aws_report()
     assert "AWS resource report" in prompt_text
+
+
+def test_strands_agent_registers_existing_aws_operations(monkeypatch):
+    fake_strands = types.ModuleType("strands")
+    fake_strands.tool = lambda function: function
+
+    class FakeAgent:
+        def __init__(self, **kwargs):
+            self.options = kwargs
+
+    fake_strands.Agent = FakeAgent
+    monkeypatch.setitem(sys.modules, "strands", fake_strands)
+    monkeypatch.delitem(sys.modules, "aws_resource_mcp.strands_agent", raising=False)
+
+    from aws_resource_mcp.strands_agent import create_agent
+
+    agent = create_agent()
+
+    assert [tool.__name__ for tool in agent.options["tools"]] == [
+        "aws_account_summary",
+        "generate_report",
+    ]
+    assert "read-only" in agent.options["system_prompt"]
 
 
 def test_version_command_output(monkeypatch):
